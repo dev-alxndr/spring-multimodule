@@ -1,0 +1,24 @@
+rootProject.name = 'demo-multi-module'
+include 'app'
+
+def projectPath = file(System.getProperty("user.dir")).absolutePath
+def subsystemPath = "$projectPath/submodule"
+def buildDirectory = ['build', 'out', 'bin']
+
+
+def subsystems = new File(subsystemPath)
+        .listFiles()
+        .stream()
+        .filter { it.isDirectory() && !buildDirectory.contains(it.name) && !it.name.startsWith(".") }
+        .map { it.name }
+
+subsystems.forEach { subsystem ->
+    println("Loaded $subsystem submodlue")
+
+    include(":submodule:$subsystem:interface")
+    project(":submodule:$subsystem:interface").name = "$subsystem-interface"
+
+    include(":submodule:$subsystem:component")
+    project(":submodule:$subsystem:component").name = "$subsystem-component"
+}
+

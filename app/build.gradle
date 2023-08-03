@@ -1,0 +1,64 @@
+import java.util.stream.Collectors
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.1'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+group 'me.alxndr'
+version '0.0.1-SNAPSHOT'
+
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}
+
+repositories {
+    mavenCentral()
+}
+
+def projectPath = file(System.getProperty("user.dir")).absolutePath
+def subsystemPath = "$projectPath/submodule"
+def buildDirectory = ['build', 'out', 'bin']
+
+def subsystems = new File(subsystemPath)
+        .listFiles()
+        .stream()
+        .filter { it.isDirectory() && !buildDirectory.contains(it.name) && !it.name.startsWith(".") }
+        .map { it.name }
+        .collect(Collectors.toList())
+
+subsystems.forEach { subsystem ->
+    println("Loaded $subsystem submodlue!!!!!")
+}
+
+
+dependencies {
+    subsystems.forEach { subsystem ->
+        implementation project(":submodule:$subsystem:$subsystem-component")
+        implementation project(":submodule:$subsystem:$subsystem-interface")
+    }
+
+    implementation "com.mysql:mysql-connector-j"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
